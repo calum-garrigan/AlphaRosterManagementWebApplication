@@ -2,75 +2,92 @@ import pandas as pd
 import streamlit as st
 
 def main():
-    # Optional: Configure the page layout and page title
     st.set_page_config(page_title="Roster Updater", layout="wide")
-
-    # Display your image at the very top (above the title) with a fixed width
     st.image("Jag Logo.png", width=200)
 
-
-    # 2. Page Title
     st.title("Alpha Roster Management Web Application")
     st.write("Upload your rosters and decoder, then generate Gains, Losses, and Alpha rosters.")
 
-    # 3. File uploader widgets
+    # -- File uploader widgets --
     new_roster_file = st.file_uploader("Upload New Roster CSV", type="csv")
     old_roster_file = st.file_uploader("Upload Old Roster CSV", type="csv")
     decoder_file    = st.file_uploader("Upload Decoder CSV",     type="csv")
 
-    # 4. Button to process data
     if st.button("Generate Gains/Losses/Alpha"):
-        # Ensure all three files are uploaded
         if not (new_roster_file and old_roster_file and decoder_file):
             st.warning("Please upload all three CSV files before proceeding.")
         else:
-            # --- Read Data ---
+            # --- Read CSV data ---
             Roster_new = pd.read_csv(new_roster_file)
             Roster_old = pd.read_csv(old_roster_file)
             Decode     = pd.read_csv(decoder_file)
 
-            # --- Remove duplicates by DODID ---
-            # Make sure 'DODID' exists in your CSVs
+            # ---------------------------------------------------------
+            # A) Rename only the columns that changed in your new CSVs
+            #
+            #    The keys below should match the **exact** column names
+            #    in your new rosters. The values are what we'll call
+            #    them *inside* the code for consistency.
+            # ---------------------------------------------------------
+            rename_dict = {
+                "First Name":  "First",
+                "Last Name":   "Last",
+                "Birthdate":   "DOB",
+                "Email Address": "Email",
+
+                "Home UIC":    "UIC",   # replaces old "Soldier Home UIC"
+                "Rank":        "Rank",  # replaces old "Current Rank"
+
+                "Employee ID (EMPLID)": "EMPLID",  # brand new column
+                "Battalion":   "BN",    # was "BN" in older code
+                "DMSL (Distribution Management Sub-Level - Current Only)": "CTB"  # was "CTB"
+            }
+
+            # We still have a separate "DODID" column that remains the same
+            # since you said "No DODID is separate, keep it as is."
+
+            # -- Drop duplicates based on DODID (still your unique ID) --
             Roster_new = Roster_new.drop_duplicates(subset="DODID")
             Roster_old = Roster_old.drop_duplicates(subset="DODID")
 
-            # --- Select and rename columns as needed ---
-            rename_dict = {
-                "First Name":       "First",
-                "Last Name":        "Last",
-                "Birthdate":        "DOB",
-                "Email Address":    "Email",
-                "Current Rank":     "Rank",
-                "Soldier Home UIC": "UIC",
-            }
-            needed_cols = list(rename_dict.keys()) + ["DODID"]
+            # -- Select columns that exist and rename them --
+            #    Make sure the columns in 'rename_dict' actually appear in your CSVs.
+            existing_cols_in_new = [col for col in rename_dict if col in Roster_new.columns]
+            existing_cols_in_old = [col for col in rename_dict if col in Roster_old.columns]
 
-            Roster_new = (
-                Roster_new[needed_cols]
-                .rename(columns=rename_dict)
-                .assign(
-                    First=lambda df: df["First"].str.title(),
-                    Last=lambda df: df["Last"].str.title()
-                )
-            )
-            Roster_old = (
-                Roster_old[needed_cols]
-                .rename(columns=rename_dict)
-                .assign(
-                    First=lambda df: df["First"].str.title(),
-                    Last=lambda df: df["Last"].str.title()
-                )
-            )
+            Roster_new = Roster_new[existing_cols_in_new + ["DODID"]].rename(columns=rename_dict)
+            Roster_old = Roster_old[existing_cols_in_old + ["DODID"]].rename(columns=rename_dict)
 
-            # --- Decode (remove 'Raw' if it exists, then merge on UIC) ---
+            # -- Optionally title-case first/last names --
+            if "First" in Roster_new.columns:
+                Roster_new["First"] = Roster_new["First"].str.title()
+                Roster_old["First"] = Roster_old["First"].str.title()
+            if "Last" in Roster_new.columns:
+                Roster_new["Last"] = Roster_new["Last"].str.title()
+                Roster_old["Last"] = Roster_old["Last"].str.title()
+
+            # ---------------------------------------------------------
+            # B) Merge the Decode file on "UIC" if it exists
+            # ---------------------------------------------------------
             if "Raw" in Decode.columns:
                 Decode.drop(columns="Raw", inplace=True)
+
+            # If your Decode file also uses "Home UIC" in the new format,
+            # be sure to rename that to "UIC" in Decode as well before merging.
+            if "Home UIC" in Decode.columns:
+                Decode.rename(columns={"Home UIC": "UIC"}, inplace=True)
 
             Roster_new = Roster_new.merge(Decode, on="UIC", how="left")
             Roster_old = Roster_old.merge(Decode, on="UIC", how="left")
 
-            # --- Gains & Losses ---
-            merge_cols = ["DODID", "First", "Last"]
+            # ---------------------------------------------------------
+            # C) Gains & Losses
+            # ---------------------------------------------------------
+            # We match on DODID plus optional First/Last if present.
+            merge_cols = ["DODID"]
+            if all(col in Roster_new.columns for col in ["First", "Last"]):
+                merge_cols = ["DODID", "First", "Last"]
+
             gains_mask  = ~Roster_new[merge_cols].apply(tuple, axis=1).isin(
                             Roster_old[merge_cols].apply(tuple, axis=1)
                           )
@@ -80,23 +97,34 @@ def main():
             gains  = Roster_new.loc[gains_mask].copy()
             losses = Roster_old.loc[losses_mask].copy()
 
-            # --- Alpha Roster ---
-            # Check if 'CTB' and 'BN' exist in your data
+            # ---------------------------------------------------------
+            # D) Alpha Roster
+            # ---------------------------------------------------------
+            # The code used to look for CTB/BN. Now we have them renamed
+            # from "DMSL (Distribution Management Sub-Level - Current Only)"
+            # and "Battalion". After rename_dict, they are "CTB" and "BN".
             columns_for_alpha = []
             if "CTB" in Roster_new.columns:
                 columns_for_alpha.append("CTB")
             if "BN" in Roster_new.columns:
                 columns_for_alpha.append("BN")
 
-            Alpha = pd.DataFrame({
-                "About": Roster_new["Last"] + " " + Roster_new["First"],
-                "DODID": Roster_new["DODID"],
-                "Rank":  Roster_new["Rank"]
-            })
+            # Build the Alpha dataframe
+            # Keep "DODID" as is, but also include "Rank", "EMPLID", etc. if desired.
+            Alpha = pd.DataFrame({"DODID": Roster_new["DODID"]})
+            if "Rank" in Roster_new.columns:
+                Alpha["Rank"] = Roster_new["Rank"]
+            if "EMPLID" in Roster_new.columns:
+                Alpha["EMPLID"] = Roster_new["EMPLID"]
+            if all(col in Roster_new.columns for col in ["First", "Last"]):
+                Alpha["About"] = Roster_new["Last"] + " " + Roster_new["First"]
+
             for col in columns_for_alpha:
                 Alpha[col] = Roster_new[col]
 
-            # 5. Show results
+            # ---------------------------------------------------------
+            # E) Display and download results
+            # ---------------------------------------------------------
             st.subheader("Gains")
             st.dataframe(gains)
 
@@ -106,7 +134,6 @@ def main():
             st.subheader("Alpha Roster")
             st.dataframe(Alpha)
 
-            # 6. Download buttons
             st.download_button(
                 label="Download Gains as CSV",
                 data=gains.to_csv(index=False),
