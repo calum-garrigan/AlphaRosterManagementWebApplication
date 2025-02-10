@@ -8,7 +8,6 @@ def main():
     # Display image at the very top (above the title)
     st.image("Jag Logo.png", width=200)
 
-
     # 2. Page Title
     st.title("Alpha Roster Management Web Application")
     st.write("Upload your rosters and decoder, then generate Gains, Losses, and Alpha rosters.")
@@ -30,7 +29,6 @@ def main():
             Decode     = pd.read_csv(decoder_file)
 
             # --- Remove duplicates by DODID ---
-            # Make sure 'DODID' exists in your CSVs
             Roster_new = Roster_new.drop_duplicates(subset="DODID")
             Roster_old = Roster_old.drop_duplicates(subset="DODID")
 
@@ -69,6 +67,10 @@ def main():
             Roster_new = Roster_new.merge(Decode, on="UIC", how="left")
             Roster_old = Roster_old.merge(Decode, on="UIC", how="left")
 
+            # --- Finding missing UICs ---
+            UICs = Roster_new[Roster_new['Group'].isna()]
+            UICs.to_csv("UICs.csv", index=False)
+
             # --- Gains & Losses ---
             merge_cols = ["DODID", "First", "Last"]
             gains_mask  = ~Roster_new[merge_cols].apply(tuple, axis=1).isin(
@@ -81,7 +83,6 @@ def main():
             losses = Roster_old.loc[losses_mask].copy()
 
             # --- Alpha Roster ---
-            # Check if 'CTB' and 'BN' exist in your data
             columns_for_alpha = []
             if "CTB" in Roster_new.columns:
                 columns_for_alpha.append("CTB")
@@ -123,6 +124,12 @@ def main():
                 label="Download Alpha as CSV",
                 data=Alpha.to_csv(index=False),
                 file_name="alpha.csv",
+                mime="text/csv"
+            )
+            st.download_button(
+                label="Download Missing UICs as CSV",
+                data=UICs.to_csv(index=False),
+                file_name="UICs.csv",
                 mime="text/csv"
             )
 
