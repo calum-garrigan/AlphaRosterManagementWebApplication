@@ -47,16 +47,16 @@ def main():
                 Roster_new[needed_cols]
                 .rename(columns=rename_dict)
                 .assign(
-                    First=lambda df: df["First"].astype(str).fillna("").str.title(),
-                    Last=lambda df: df["Last"].astype(str).fillna("").str.title()
+                    First=lambda df: df["First"].astype(str).fillna("").apply(lambda x: x.title() if x else ""),
+                    Last=lambda df: df["Last"].astype(str).fillna("").apply(lambda x: x.title() if x else "")
                 )
             )
             Roster_old = (
                 Roster_old[needed_cols]
                 .rename(columns=rename_dict)
                 .assign(
-                    First=lambda df: df["First"].astype(str).fillna("").str.title(),
-                    Last=lambda df: df["Last"].astype(str).fillna("").str.title()
+                    First=lambda df: df["First"].astype(str).fillna("").apply(lambda x: x.title() if x else ""),
+                    Last=lambda df: df["Last"].astype(str).fillna("").apply(lambda x: x.title() if x else "")
                 )
             )
 
