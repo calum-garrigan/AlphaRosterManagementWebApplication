@@ -24,8 +24,8 @@ def main():
             st.warning("Please upload all three CSV files before proceeding.")
         else:
             # --- Read Data ---
-            Roster_new = pd.read_csv(new_roster_file)
-            Roster_old = pd.read_csv(old_roster_file)
+            Roster_new = pd.read_csv(new_roster_file, dtype={"DODID": str})  # Ensure DODID is a string
+            Roster_old = pd.read_csv(old_roster_file, dtype={"DODID": str})  # Prevents commas in large numbers
             Decode     = pd.read_csv(decoder_file)
 
             # --- Remove duplicates by DODID ---
@@ -82,7 +82,7 @@ def main():
             gains  = Roster_new.loc[gains_mask].copy()
             losses = Roster_old.loc[losses_mask].copy()
 
-            # --- Alpha Roster ---
+            # --- Alpha Roster (Now Includes UIC) ---
             columns_for_alpha = []
             if "CTB" in Roster_new.columns:
                 columns_for_alpha.append("CTB")
@@ -92,7 +92,8 @@ def main():
             Alpha = pd.DataFrame({
                 "About": Roster_new["Last"] + " " + Roster_new["First"],
                 "DODID": Roster_new["DODID"],
-                "Rank":  Roster_new["Rank"]
+                "Rank":  Roster_new["Rank"],
+                "UIC":   Roster_new["UIC"]  # Now includes UIC
             })
             for col in columns_for_alpha:
                 Alpha[col] = Roster_new[col]
@@ -107,28 +108,28 @@ def main():
             st.subheader("Alpha Roster")
             st.dataframe(Alpha)
 
-            # 6. Download buttons
+            # 6. Download buttons (DODID formatted properly)
             st.download_button(
                 label="Download Gains as CSV",
-                data=gains.to_csv(index=False),
+                data=gains.to_csv(index=False, quoting=3),  # Ensures DODID does not have commas
                 file_name="gains.csv",
                 mime="text/csv"
             )
             st.download_button(
                 label="Download Losses as CSV",
-                data=losses.to_csv(index=False),
+                data=losses.to_csv(index=False, quoting=3),  # Ensures DODID does not have commas
                 file_name="losses.csv",
                 mime="text/csv"
             )
             st.download_button(
                 label="Download Alpha as CSV",
-                data=Alpha.to_csv(index=False),
+                data=Alpha.to_csv(index=False, quoting=3),  # Ensures DODID does not have commas
                 file_name="alpha.csv",
                 mime="text/csv"
             )
             st.download_button(
                 label="Download Missing UICs as CSV",
-                data=UICs.to_csv(index=False),
+                data=UICs.to_csv(index=False, quoting=3),  # Ensures DODID does not have commas
                 file_name="UICs.csv",
                 mime="text/csv"
             )
