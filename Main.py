@@ -60,10 +60,12 @@ def main():
                 )
             )
 
-            # --- Decode (remove 'Raw' if it exists, then merge on UIC) ---
-            if "Raw" in Decode.columns:
-                Decode.drop(columns="Raw", inplace=True)
+            # --- Ensure "UIC" is a string in all datasets before merging ---
+            Roster_new["UIC"] = Roster_new["UIC"].astype(str).str.strip()
+            Roster_old["UIC"] = Roster_old["UIC"].astype(str).str.strip()
+            Decode["UIC"] = Decode["UIC"].astype(str).str.strip()
 
+            # --- Merge Decode onto Rosters ---
             Roster_new = Roster_new.merge(Decode, on="UIC", how="left")
             Roster_old = Roster_old.merge(Decode, on="UIC", how="left")
 
