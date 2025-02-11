@@ -30,9 +30,6 @@ def main():
                 "Last Name": "LastName",
                 "Birthdate": "DateofBirth",
                 "Email Address": "Email Address",
-                "Current Rank": "Rank",
-                "Soldier Home UIC": "UIC",
-                "Known As": "Known As"
             }
             needed_cols = list(rename_dict.keys()) + ["DODID"]
 
@@ -45,14 +42,11 @@ def main():
                 .rename(columns=rename_dict)
             )
 
-            Roster_new["UIC"] = Roster_new["UIC"].astype(str).str.strip()
-            Roster_old["UIC"] = Roster_old["UIC"].astype(str).str.strip()
-            Decode["UIC"] = Decode["UIC"].astype(str).str.strip()
+            Roster_new["Username"] = Roster_new["DODID"]
+            Roster_new["UUID"] = Roster_new["DODID"]
 
-            Roster_new = Roster_new.merge(Decode, on="UIC", how="left")
-            Roster_old = Roster_old.merge(Decode, on="UIC", how="left")
-
-            UICs = Roster_new[Roster_new['Group'].isna()]
+            Roster_old["Username"] = Roster_old["DODID"]
+            Roster_old["UUID"] = Roster_old["DODID"]
 
             merge_cols = ["DODID", "FirstName", "LastName"]
             gains_mask = ~Roster_new[merge_cols].apply(tuple, axis=1).isin(
@@ -64,20 +58,25 @@ def main():
             gains = Roster_new.loc[gains_mask].copy()
             losses = Roster_old.loc[losses_mask].copy()
 
-            # --- Adjust Gains & Losses Format ---
+            # --- Format Gains & Losses ---
             def format_roster(df):
-                df["Username"] = df["DODID"]
-                df["UUID"] = df["DODID"]
-                df["IL5 Child Group1"] = "All Users"
-                df.rename(columns={"BDE": "IL5 Child Group2", "BN": "IL5 Child Group3", "CTB": "IL5 Child Group4"}, inplace=True)
-                
-                # Set correct order of columns
+                df["Known As"] = ""  # Empty
+                df["UUID"] = df["DODID"]  # UUID comes AFTER Known As
+                df["IL5 OHWS Group1"] = ""  # Empty
+                df["IL5 OHWS Group2"] = ""  # Empty
+                df["IL5 OHWS Role"] = ""  # Empty
+                df["IL5 Child Group1"] = ""  # Empty
+                df["IL5 Child Group2"] = ""  # Empty (BDE)
+                df["IL5 Child Group3"] = ""  # Empty (BN)
+                df["IL5 Child Group4"] = ""  # Empty (CTB)
+                df["IL5 Child Role"] = ""  # Empty
+
                 column_order = [
-                    "FirstName", "LastName", "Username", "Email Address", "DateofBirth", "Known As",
-                    "UUID", "IL5 OHWS Group1", "IL5 OHWS Group2", "IL5 OHWS Role",
+                    "FirstName", "LastName", "Username", "Email Address", "DateofBirth", "Known As", "UUID",
+                    "IL5 OHWS Group1", "IL5 OHWS Group2", "IL5 OHWS Role",
                     "IL5 Child Group1", "IL5 Child Group2", "IL5 Child Group3", "IL5 Child Group4", "IL5 Child Role"
                 ]
-                
+
                 return df[column_order]
 
             gains = format_roster(gains)
@@ -105,7 +104,6 @@ def main():
                 zipf.writestr("gains.csv", gains.to_csv(index=False))
                 zipf.writestr("losses.csv", losses.to_csv(index=False))
                 zipf.writestr("alpha.csv", Alpha.to_csv(index=False))
-                zipf.writestr("UICs.csv", UICs.to_csv(index=False))
 
             zip_buffer.seek(0)
             st.download_button(
