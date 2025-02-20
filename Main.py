@@ -49,6 +49,7 @@ def main():
             losses = Roster_old.loc[losses_mask].copy()
 
             for df in [gains, losses]:
+                df = df[["FirstName", "LastName", "DODID", "Email Address", "DateofBirth"]]
                 df["Username"] = df["DODID"]
                 df["UUID"] = df["DODID"]
                 df["Known As"] = ""
@@ -60,7 +61,6 @@ def main():
                 df["IL5 Child Group3"] = df["BN"]
                 df["IL5 Child Group4"] = df["CTB"]
                 df["IL5 Child Role"] = ""
-                df.drop(columns=["Raw name", "Detachment"], errors='ignore', inplace=True)
 
             Alpha = pd.DataFrame({
                 "About": Roster_new["LastName"] + " " + Roster_new["FirstName"],
