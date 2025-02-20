@@ -41,6 +41,9 @@ def main():
                 "Current Rank":     "Rank",
                 "Soldier Home UIC": "UIC",
             }
+            print("Columns in Roster_new:", Roster_new.columns.tolist())
+            print("needed_cols:", needed_cols)
+
             needed_cols = list(rename_dict.keys()) + ["DODID"]
 
             Roster_new = (
