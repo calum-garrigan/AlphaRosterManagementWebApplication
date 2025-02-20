@@ -57,9 +57,9 @@ def main():
                 df["IL5 OHWS Group2"] = ""
                 df["IL5 OHWS Role"] = ""
                 df["IL5 Child Group1"] = "All Users"
-                df["IL5 Child Group2"] = df["BDE"]
-                df["IL5 Child Group3"] = df["BN"]
-                df["IL5 Child Group4"] = df["CTB"]
+                df["IL5 Child Group2"] = df["BDE"] if "BDE" in df.columns else ""
+                df["IL5 Child Group3"] = df["BN"] if "BN" in df.columns else ""
+                df["IL5 Child Group4"] = df["CTB"] if "CTB" in df.columns else ""
                 df["IL5 Child Role"] = ""
 
             Alpha = pd.DataFrame({
