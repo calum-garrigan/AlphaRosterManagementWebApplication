@@ -62,11 +62,21 @@ def main():
                 df["IL5 Child Role"] = ""
                 df.drop(columns=["Raw name", "Detachment"], errors='ignore', inplace=True)
 
+            Alpha = pd.DataFrame({
+                "About": Roster_new["LastName"] + " " + Roster_new["FirstName"],
+                "DODID": Roster_new["DODID"],
+                "Rank":  Roster_new["Rank"],
+                "UIC":   Roster_new["UIC"]
+            })
+            
             st.subheader("Gains")
             st.dataframe(gains)
             
             st.subheader("Losses")
             st.dataframe(losses)
+            
+            st.subheader("Alpha Roster")
+            st.dataframe(Alpha)
             
             st.download_button(
                 label="Download Gains as CSV",
@@ -78,6 +88,12 @@ def main():
                 label="Download Losses as CSV",
                 data=losses.to_csv(index=False, quoting=3),
                 file_name="losses.csv",
+                mime="text/csv"
+            )
+            st.download_button(
+                label="Download Alpha as CSV",
+                data=Alpha.to_csv(index=False, quoting=3),
+                file_name="alpha.csv",
                 mime="text/csv"
             )
 
