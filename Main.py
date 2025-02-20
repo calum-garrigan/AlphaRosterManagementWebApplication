@@ -27,8 +27,6 @@ def main():
                 "Last Name": "LastName",
                 "Birthdate": "DateofBirth",
                 "Email Address": "Email Address",
-                "Current Rank": "Rank",
-                "Soldier Home UIC": "UIC",
             }
 
             needed_cols = list(rename_dict.keys()) + ["DODID"]
@@ -36,9 +34,9 @@ def main():
             Roster_new = Roster_new[needed_cols].rename(columns=rename_dict)
             Roster_old = Roster_old[needed_cols].rename(columns=rename_dict)
 
-            Roster_new["UIC"] = Roster_new["UIC"].astype(str).str.strip()
-            Roster_old["UIC"] = Roster_old["UIC"].astype(str).str.strip()
-            Decode["UIC"] = Decode["UIC"].astype(str).str.strip()
+            Roster_new["UIC"] = Roster_new["DODID"].astype(str).str.strip()
+            Roster_old["UIC"] = Roster_old["DODID"].astype(str).str.strip()
+            Decode["UIC"] = Decode["DODID"].astype(str).str.strip()
 
             Roster_new = Roster_new.merge(Decode, on="UIC", how="left")
             Roster_old = Roster_old.merge(Decode, on="UIC", how="left")
@@ -49,7 +47,6 @@ def main():
             losses = Roster_old.loc[losses_mask].copy()
 
             for df in [gains, losses]:
-                df = df[["FirstName", "LastName", "DODID", "Email Address", "DateofBirth"]]
                 df["Username"] = df["DODID"]
                 df["UUID"] = df["DODID"]
                 df["Known As"] = ""
@@ -61,12 +58,11 @@ def main():
                 df["IL5 Child Group3"] = df["BN"] if "BN" in df.columns else ""
                 df["IL5 Child Group4"] = df["CTB"] if "CTB" in df.columns else ""
                 df["IL5 Child Role"] = ""
+                df = df[["FirstName", "LastName", "Username", "Email Address", "DateofBirth", "Known As", "UUID", "IL5 OHWS Group1", "IL5 OHWS Group2", "IL5 OHWS Role", "IL5 Child Group1", "IL5 Child Group2", "IL5 Child Group3", "IL5 Child Group4", "IL5 Child Role"]]
 
             Alpha = pd.DataFrame({
                 "About": Roster_new["LastName"] + " " + Roster_new["FirstName"],
                 "DODID": Roster_new["DODID"],
-                "Rank":  Roster_new["Rank"],
-                "UIC":   Roster_new["UIC"]
             })
             
             st.subheader("Gains")
