@@ -38,6 +38,8 @@ def main():
             Roster_new = Roster_new.merge(Decode, on="UIC", how="left")
             Roster_old = Roster_old.merge(Decode, on="UIC", how="left")
 
+            UICs = Roster_new[Roster_new['BDE'].isna()]
+            
             merge_cols = ["DODID", "FirstName", "LastName"]
             gains_mask = ~Roster_new[merge_cols].apply(tuple, axis=1).isin(Roster_old[merge_cols].apply(tuple, axis=1))
             losses_mask = ~Roster_old[merge_cols].apply(tuple, axis=1).isin(Roster_new[merge_cols].apply(tuple, axis=1))
@@ -89,6 +91,7 @@ def main():
             st.download_button("Download Gains as CSV", data=gains.to_csv(index=False), file_name="gains.csv", mime="text/csv")
             st.download_button("Download Losses as CSV", data=losses.to_csv(index=False), file_name="losses.csv", mime="text/csv")
             st.download_button("Download Alpha as CSV", data=Alpha.to_csv(index=False), file_name="alpha.csv", mime="text/csv")
+            st.download_button("Download Missing UICs as CSV", data=UICs.to_csv(index=False), file_name="missing_uics.csv", mime="text/csv")
 
 if __name__ == "__main__":
     main()
