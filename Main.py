@@ -25,9 +25,9 @@ def main():
             Roster_old = Roster_old.drop_duplicates(subset="DODID")
 
             rename_dict = {
-                "First Name": "FirstName",
-                "Last Name": "LastName",
-                "Birthdate": "DateofBirth",
+                "First Name": "First Name",
+                "Last Name": "Last Name",
+                "Birthdate": "Date of Birth",
                 "Email Address": "Email Address",
                 "Current Rank": "Rank",
                 "Soldier Home UIC": "UIC",
@@ -48,7 +48,7 @@ def main():
 
             UICs = Roster_new[Roster_new['BDE'].isna()]
             
-            merge_cols = ["DODID", "FirstName", "LastName"]
+            merge_cols = ["DODID", "First Name", "Last Name"]
             gains_mask = ~Roster_new[merge_cols].apply(tuple, axis=1).isin(Roster_old[merge_cols].apply(tuple, axis=1))
             losses_mask = ~Roster_old[merge_cols].apply(tuple, axis=1).isin(Roster_new[merge_cols].apply(tuple, axis=1))
 
@@ -68,7 +68,7 @@ def main():
                     IL5_Child_Group3=df.get("BN", ""),
                     IL5_Child_Group4=df.get("CTB", ""),
                     IL5_Child_Role=""
-                )[["FirstName", "LastName", "Username", "Email Address", "DateofBirth", "Known As",
+                )[["First Name", "Last Name", "Username", "Email Address", "Date of Birth", "Known As",
                     "UUID", "IL5 OHWS Group1", "IL5 OHWS Group2", "IL5 OHWS Role", "IL5 Child Group1",
                     "IL5 Child Group2", "IL5 Child Group3", "IL5 Child Group4", "IL5 Child Role"]]
 
@@ -76,7 +76,7 @@ def main():
             losses = format_output(losses)
 
             Alpha = pd.DataFrame({
-                "About": Roster_new["LastName"] + " " + Roster_new["FirstName"],
+                "About": Roster_new["Last Name"] + " " + Roster_new["First Name"],
                 "DODID": Roster_new["DODID"],
                 "Rank": Roster_new["Rank"],
                 "UIC": Roster_new["UIC"]
