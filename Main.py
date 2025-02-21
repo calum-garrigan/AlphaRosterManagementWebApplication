@@ -52,7 +52,7 @@ def main():
                 if col not in Roster_old.columns:
                     Roster_old[col] = ""
 
-            UICs = Roster_new[Roster_new['BDE'] == ""]
+            UICs = Roster_new[Roster_new.get('BDE', '') == ""]
             
             merge_cols = ["DODID", "First Name", "Last Name"]
             gains_mask = ~Roster_new[merge_cols].apply(tuple, axis=1).isin(Roster_old[merge_cols].apply(tuple, axis=1))
@@ -62,20 +62,17 @@ def main():
             losses = Roster_old.loc[losses_mask].copy()
 
             def format_output(df):
-                for col in ["DODID", "BDE", "BN", "CTB"]:
-                    if col not in df.columns:
-                        df[col] = ""
                 return df.assign(
-                    Username=df["DODID"],
-                    UUID=df["DODID"],
+                    Username=df.get("DODID", ""),
+                    UUID=df.get("DODID", ""),
                     Known_As="",
                     IL5_OHWS_Group1="",
                     IL5_OHWS_Group2="",
                     IL5_OHWS_Role="",
                     IL5_Child_Group1="All Users",
-                    IL5_Child_Group2=df["BDE"],
-                    IL5_Child_Group3=df["BN"],
-                    IL5_Child_Group4=df["CTB"],
+                    IL5_Child_Group2=df.get("BDE", ""),
+                    IL5_Child_Group3=df.get("BN", ""),
+                    IL5_Child_Group4=df.get("CTB", ""),
                     IL5_Child_Role=""
                 )[["First Name", "Last Name", "Username", "Email Address", "Date of Birth", "Known As",
                     "UUID", "IL5 OHWS Group1", "IL5 OHWS Group2", "IL5 OHWS Role", "IL5 Child Group1",
@@ -85,10 +82,10 @@ def main():
             losses = format_output(losses)
 
             Alpha = pd.DataFrame({
-                "About": Roster_new["Last Name"] + " " + Roster_new["First Name"],
-                "DODID": Roster_new["DODID"],
-                "Rank": Roster_new["Rank"],
-                "UIC": Roster_new["UIC"]
+                "About": Roster_new.get("Last Name", "") + " " + Roster_new.get("First Name", ""),
+                "DODID": Roster_new.get("DODID", ""),
+                "Rank": Roster_new.get("Rank", ""),
+                "UIC": Roster_new.get("UIC", "")
             })
 
             if "CTB" in Roster_new.columns:
