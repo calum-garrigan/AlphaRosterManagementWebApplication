@@ -1,5 +1,7 @@
 import pandas as pd
 import streamlit as st
+import zipfile
+import io
 
 def main():
     st.set_page_config(page_title="Roster Updater", layout="wide")
@@ -88,10 +90,18 @@ def main():
             st.subheader("Alpha Roster")
             st.dataframe(Alpha)
 
-            st.download_button("Download Gains as CSV", data=gains.to_csv(index=False), file_name="gains.csv", mime="text/csv")
-            st.download_button("Download Losses as CSV", data=losses.to_csv(index=False), file_name="losses.csv", mime="text/csv")
-            st.download_button("Download Alpha as CSV", data=Alpha.to_csv(index=False), file_name="alpha.csv", mime="text/csv")
-            st.download_button("Download Missing UICs as CSV", data=UICs.to_csv(index=False), file_name="missing_uics.csv", mime="text/csv")
+            # Create in-memory ZIP file
+            zip_buffer = io.BytesIO()
+            with zipfile.ZipFile(zip_buffer, "w") as zip_file:
+                zip_file.writestr("gains.csv", gains.to_csv(index=False))
+                zip_file.writestr("losses.csv", losses.to_csv(index=False))
+                zip_file.writestr("alpha.csv", Alpha.to_csv(index=False))
+                zip_file.writestr("missing_uics.csv", UICs.to_csv(index=False))
+            zip_buffer.seek(0)
+
+            st.download_button(
+                "Download All Reports as ZIP", data=zip_buffer, file_name="roster_reports.zip", mime="application/zip"
+            )
 
 if __name__ == "__main__":
     main()
