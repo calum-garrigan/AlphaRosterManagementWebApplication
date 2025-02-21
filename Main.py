@@ -15,8 +15,8 @@ def main():
         if not (new_roster_file and old_roster_file and decoder_file):
             st.warning("Please upload all three CSV files before proceeding.")
         else:
-            Roster_new = pd.read_csv(new_roster_file, dtype={"DODID": str})
-            Roster_old = pd.read_csv(old_roster_file, dtype={"DODID": str})
+            Roster_new = pd.read_csv(new_roster_file, dtype=str)
+            Roster_old = pd.read_csv(old_roster_file, dtype=str)
             Decode     = pd.read_csv(decoder_file, dtype=str)
 
             Roster_new = Roster_new.drop_duplicates(subset="DODID")
@@ -30,7 +30,6 @@ def main():
             }
 
             needed_cols = list(rename_dict.keys()) + ["DODID", "UIC"]
-
             Roster_new = Roster_new[needed_cols].rename(columns=rename_dict)
             Roster_old = Roster_old[needed_cols].rename(columns=rename_dict)
 
@@ -67,6 +66,15 @@ def main():
             st.subheader("Losses")
             st.dataframe(losses)
             
+            st.subheader("Alpha Roster")
+            Alpha = pd.DataFrame({
+                "About": Roster_new["LastName"] + " " + Roster_new["FirstName"],
+                "DODID": Roster_new["DODID"],
+                "Rank":  Roster_new["Rank"],
+                "UIC":   Roster_new["UIC"]
+            })
+            st.dataframe(Alpha)
+            
             st.download_button(
                 label="Download Gains as CSV",
                 data=gains.to_csv(index=False, quoting=3),
@@ -77,6 +85,12 @@ def main():
                 label="Download Losses as CSV",
                 data=losses.to_csv(index=False, quoting=3),
                 file_name="losses.csv",
+                mime="text/csv"
+            )
+            st.download_button(
+                label="Download Alpha as CSV",
+                data=Alpha.to_csv(index=False, quoting=3),
+                file_name="alpha.csv",
                 mime="text/csv"
             )
 
