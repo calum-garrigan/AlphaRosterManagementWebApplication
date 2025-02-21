@@ -19,9 +19,6 @@ def main():
             Roster_old = pd.read_csv(old_roster_file, dtype=str)
             Decode     = pd.read_csv(decoder_file, dtype=str)
 
-            Roster_new = Roster_new.drop_duplicates(subset="DODID")
-            Roster_old = Roster_old.drop_duplicates(subset="DODID")
-
             rename_dict = {
                 "First Name": "FirstName",
                 "Last Name": "LastName",
@@ -30,6 +27,11 @@ def main():
             }
 
             needed_cols = list(rename_dict.keys()) + ["DODID", "UIC"]
+            missing_cols = [col for col in needed_cols if col not in Roster_new.columns or col not in Roster_old.columns]
+            if missing_cols:
+                st.error(f"The following columns are missing in the uploaded CSV files: {', '.join(missing_cols)}")
+                return
+
             Roster_new = Roster_new[needed_cols].rename(columns=rename_dict)
             Roster_old = Roster_old[needed_cols].rename(columns=rename_dict)
 
@@ -70,8 +72,8 @@ def main():
             Alpha = pd.DataFrame({
                 "About": Roster_new["LastName"] + " " + Roster_new["FirstName"],
                 "DODID": Roster_new["DODID"],
-                "Rank":  Roster_new["Rank"],
-                "UIC":   Roster_new["UIC"]
+                "Rank":  Roster_new.get("Rank", ""),
+                "UIC":   Roster_new.get("UIC", "")
             })
             st.dataframe(Alpha)
             
