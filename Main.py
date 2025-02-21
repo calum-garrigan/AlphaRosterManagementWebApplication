@@ -13,7 +13,7 @@ def main():
     old_roster_file = st.file_uploader("Upload Old Roster CSV", type="csv")
     decoder_file = st.file_uploader("Upload Decoder CSV", type="csv")
 
-    if st.button("Generate Gains/Losses/Alpha"):
+    if st.button("Generate Gains/Losses/Alpha Roster/Missing UICs"):
         if not (new_roster_file and old_roster_file and decoder_file):
             st.warning("Please upload all three CSV files before proceeding.")
         else:
@@ -64,8 +64,8 @@ def main():
                     IL5_Child_Role=""
                 )[[
                     "FirstName", "LastName", "Username", "Email Address", "DateofBirth", "Known_As",
-                    "UUID", "IL5_OHWS_Group1", "IL5_OHWS_Group2", "IL5_OHWS_Role", "IL5_Child_Group1",
-                    "IL5_Child_Group2", "IL5_Child_Group3", "IL5_Child_Group4", "IL5_Child_Role"
+                    "UUID", "IL5 OHWS Group1", "IL5 OHWS Group2", "IL5 OHWS Role", "IL5 Child Group1",
+                    "IL5 Child Group2", "IL5 Child Group3", "IL5 Child Group4", "IL5 Child Role"
                 ]]
 
             gains = format_output(gains)
