@@ -17,12 +17,12 @@ def main():
         if not (new_roster_file and old_roster_file and decoder_file):
             st.warning("Please upload all three CSV files before proceeding.")
         else:
-            Roster_new = pd.read_csv(new_roster_file, dtype={"DODID": str})
-            Roster_old = pd.read_csv(old_roster_file, dtype={"DODID": str})
-            Decode = pd.read_csv(decoder_file)
+            Roster_new = pd.read_csv(new_roster_file, dtype=str)
+            Roster_old = pd.read_csv(old_roster_file, dtype=str)
+            Decode = pd.read_csv(decoder_file, dtype=str)
 
-            Roster_new = Roster_new.drop_duplicates(subset="DODID")
-            Roster_old = Roster_old.drop_duplicates(subset="DODID")
+            Roster_new = Roster_new.drop_duplicates(subset="DODID", keep='first')
+            Roster_old = Roster_old.drop_duplicates(subset="DODID", keep='first')
 
             rename_dict = {
                 "First Name": "First Name",
@@ -34,8 +34,15 @@ def main():
             }
             needed_cols = list(rename_dict.keys()) + ["DODID"]
 
-            Roster_new = Roster_new[needed_cols].rename(columns=rename_dict)
-            Roster_old = Roster_old[needed_cols].rename(columns=rename_dict)
+            Roster_new = Roster_new.rename(columns=rename_dict)
+            Roster_old = Roster_old.rename(columns=rename_dict)
+
+            # Ensure all needed columns exist
+            for col in needed_cols:
+                if col not in Roster_new.columns:
+                    Roster_new[col] = ""
+                if col not in Roster_old.columns:
+                    Roster_old[col] = ""
 
             Roster_new = Roster_new.merge(Decode, on="UIC", how="left")
             Roster_old = Roster_old.merge(Decode, on="UIC", how="left")
@@ -57,8 +64,8 @@ def main():
 
             def format_output(df):
                 return df.assign(
-                    Username=df["DODID"],
-                    UUID=df["DODID"],
+                    Username=df.get("DODID", ""),
+                    UUID=df.get("DODID", ""),
                     Known_As="",
                     IL5_OHWS_Group1="",
                     IL5_OHWS_Group2="",
