@@ -21,8 +21,8 @@ def main():
             Roster_old = pd.read_csv(old_roster_file, dtype=str)
             Decode = pd.read_csv(decoder_file, dtype=str)
 
-            Roster_new = Roster_new.drop_duplicates(subset="DODID", keep='first')
-            Roster_old = Roster_old.drop_duplicates(subset="DODID", keep='first')
+            Roster_new = Roster_new.drop_duplicates(subset="DODID", keep='first').fillna("")
+            Roster_old = Roster_old.drop_duplicates(subset="DODID", keep='first').fillna("")
 
             rename_dict = {
                 "First Name": "First Name",
@@ -37,15 +37,14 @@ def main():
             Roster_new = Roster_new.rename(columns=rename_dict)
             Roster_old = Roster_old.rename(columns=rename_dict)
 
-            # Ensure all needed columns exist
             for col in needed_cols:
                 if col not in Roster_new.columns:
                     Roster_new[col] = ""
                 if col not in Roster_old.columns:
                     Roster_old[col] = ""
 
-            Roster_new = Roster_new.merge(Decode, on="UIC", how="left")
-            Roster_old = Roster_old.merge(Decode, on="UIC", how="left")
+            Roster_new = Roster_new.merge(Decode, on="UIC", how="left").fillna("")
+            Roster_old = Roster_old.merge(Decode, on="UIC", how="left").fillna("")
 
             for col in ["BDE", "BN", "CTB"]:
                 if col not in Roster_new.columns:
@@ -53,7 +52,7 @@ def main():
                 if col not in Roster_old.columns:
                     Roster_old[col] = ""
 
-            UICs = Roster_new[Roster_new['BDE'].isna()]
+            UICs = Roster_new[Roster_new['BDE'] == ""]
             
             merge_cols = ["DODID", "First Name", "Last Name"]
             gains_mask = ~Roster_new[merge_cols].apply(tuple, axis=1).isin(Roster_old[merge_cols].apply(tuple, axis=1))
@@ -63,17 +62,20 @@ def main():
             losses = Roster_old.loc[losses_mask].copy()
 
             def format_output(df):
+                for col in ["DODID", "BDE", "BN", "CTB"]:
+                    if col not in df.columns:
+                        df[col] = ""
                 return df.assign(
-                    Username=df.get("DODID", ""),
-                    UUID=df.get("DODID", ""),
+                    Username=df["DODID"],
+                    UUID=df["DODID"],
                     Known_As="",
                     IL5_OHWS_Group1="",
                     IL5_OHWS_Group2="",
                     IL5_OHWS_Role="",
                     IL5_Child_Group1="All Users",
-                    IL5_Child_Group2=df.get("BDE", ""),
-                    IL5_Child_Group3=df.get("BN", ""),
-                    IL5_Child_Group4=df.get("CTB", ""),
+                    IL5_Child_Group2=df["BDE"],
+                    IL5_Child_Group3=df["BN"],
+                    IL5_Child_Group4=df["CTB"],
                     IL5_Child_Role=""
                 )[["First Name", "Last Name", "Username", "Email Address", "Date of Birth", "Known As",
                     "UUID", "IL5 OHWS Group1", "IL5 OHWS Group2", "IL5 OHWS Role", "IL5 Child Group1",
@@ -101,7 +103,6 @@ def main():
             st.subheader("Alpha Roster")
             st.dataframe(Alpha)
 
-            # Create in-memory ZIP file
             zip_buffer = io.BytesIO()
             with zipfile.ZipFile(zip_buffer, "w") as zip_file:
                 zip_file.writestr("gains.csv", gains.to_csv(index=False))
