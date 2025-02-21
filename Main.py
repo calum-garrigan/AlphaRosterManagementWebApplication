@@ -64,8 +64,8 @@ def main():
                     IL5_Child_Role=""
                 )[[
                     "FirstName", "LastName", "Username", "Email Address", "DateofBirth", "Known_As",
-                    "UUID", "IL5 OHWS Group1", "IL5 OHWS Group2", "IL5 OHWS Role", "IL5 Child Group1",
-                    "IL5 Child Group2", "IL5 Child Group3", "IL5 Child Group4", "IL5 Child Role"
+                    "UUID", "IL5_OHWS_Group1", "IL5_OHWS_Group2", "IL5_OHWS_Role", "IL5 _Child_Group1",
+                    "IL5_Child_Group2", "IL5_Child_Group3", "IL5_Child_Group4", "IL5_Child_Role"
                 ]]
 
             gains = format_output(gains)
