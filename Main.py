@@ -7,13 +7,13 @@ def main():
     st.set_page_config(page_title="Roster Updater", layout="wide")
     st.image("Jag Logo.png", width=200)
     st.title("Alpha Roster Management Web Application")
-    st.write("Upload your rosters and decoder, then generate Gains, Losses, and Alpha rosters.")
+    st.write("Upload your rosters and decoder, then generate Gains, Losses, Alpha Rosters & Missing UICs.")
 
     new_roster_file = st.file_uploader("Upload New Roster CSV", type="csv")
     old_roster_file = st.file_uploader("Upload Old Roster CSV", type="csv")
     decoder_file = st.file_uploader("Upload Decoder CSV", type="csv")
 
-    if st.button("Generate Gains/Losses/Alpha"):
+    if st.button("Generate Gains/Losses/Alpha Roster/Missing UICs"):
         if not (new_roster_file and old_roster_file and decoder_file):
             st.warning("Please upload all three CSV files before proceeding.")
         else:
