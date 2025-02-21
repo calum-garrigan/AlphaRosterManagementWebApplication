@@ -13,7 +13,7 @@ def main():
     old_roster_file = st.file_uploader("Upload Old Roster CSV", type="csv")
     decoder_file = st.file_uploader("Upload Decoder CSV", type="csv")
 
-    if st.button("Generate Gains/Losses/Alpha Roster/Missing UICs"):
+    if st.button("Generate Gains/Losses/Alpha"):
         if not (new_roster_file and old_roster_file and decoder_file):
             st.warning("Please upload all three CSV files before proceeding.")
         else:
@@ -40,6 +40,12 @@ def main():
             Roster_new = Roster_new.merge(Decode, on="UIC", how="left")
             Roster_old = Roster_old.merge(Decode, on="UIC", how="left")
 
+            for col in ["BDE", "BN", "CTB"]:
+                if col not in Roster_new.columns:
+                    Roster_new[col] = ""
+                if col not in Roster_old.columns:
+                    Roster_old[col] = ""
+
             UICs = Roster_new[Roster_new['BDE'].isna()]
             
             merge_cols = ["DODID", "FirstName", "LastName"]
@@ -58,15 +64,13 @@ def main():
                     IL5_OHWS_Group2="",
                     IL5_OHWS_Role="",
                     IL5_Child_Group1="All Users",
-                    IL5_Child_Group2=df["BDE"],
-                    IL5_Child_Group3=df["BN"],
-                    IL5_Child_Group4=df["CTB"],
+                    IL5_Child_Group2=df.get("BDE", ""),
+                    IL5_Child_Group3=df.get("BN", ""),
+                    IL5_Child_Group4=df.get("CTB", ""),
                     IL5_Child_Role=""
-                )[[
-                    "FirstName", "LastName", "Username", "Email Address", "DateofBirth", "Known_As",
-                    "UUID", "IL5_OHWS_Group1", "IL5_OHWS_Group2", "IL5_OHWS_Role", "IL5 _Child_Group1",
-                    "IL5_Child_Group2", "IL5_Child_Group3", "IL5_Child_Group4", "IL5_Child_Role"
-                ]]
+                )[["FirstName", "LastName", "Username", "Email Address", "DateofBirth", "Known_As",
+                    "UUID", "IL5_OHWS_Group1", "IL5_OHWS_Group2", "IL5_OHWS_Role", "IL5_Child_Group1",
+                    "IL5_Child_Group2", "IL5_Child_Group3", "IL5_Child_Group4", "IL5_Child_Role"]]
 
             gains = format_output(gains)
             losses = format_output(losses)
