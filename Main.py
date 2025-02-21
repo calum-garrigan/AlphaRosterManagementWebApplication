@@ -17,7 +17,7 @@ def main():
         else:
             Roster_new = pd.read_csv(new_roster_file, dtype={"DODID": str})
             Roster_old = pd.read_csv(old_roster_file, dtype={"DODID": str})
-            Decode     = pd.read_csv(decoder_file)
+            Decode     = pd.read_csv(decoder_file, dtype=str)
 
             Roster_new = Roster_new.drop_duplicates(subset="DODID")
             Roster_old = Roster_old.drop_duplicates(subset="DODID")
@@ -34,6 +34,11 @@ def main():
             Roster_new = Roster_new[needed_cols].rename(columns=rename_dict)
             Roster_old = Roster_old[needed_cols].rename(columns=rename_dict)
 
+            if "DODID" not in Decode.columns:
+                st.error("The 'DODID' column is missing from the Decoder CSV.")
+                return
+
+            Decode["DODID"] = Decode["DODID"].astype(str).str.strip()
             Roster_new = Roster_new.merge(Decode, on="DODID", how="left")
             Roster_old = Roster_old.merge(Decode, on="DODID", how="left")
 
