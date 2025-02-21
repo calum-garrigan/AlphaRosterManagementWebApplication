@@ -29,18 +29,17 @@ def main():
                 "Email Address": "Email Address",
             }
 
-            needed_cols = list(rename_dict.keys()) + ["DODID"]
+            needed_cols = list(rename_dict.keys()) + ["DODID", "UIC"]
 
             Roster_new = Roster_new[needed_cols].rename(columns=rename_dict)
             Roster_old = Roster_old[needed_cols].rename(columns=rename_dict)
 
-            if "DODID" not in Decode.columns:
-                st.error("The 'DODID' column is missing from the Decoder CSV.")
-                return
+            Decode["UIC"] = Decode["UIC"].astype(str).str.strip()
+            Roster_new["UIC"] = Roster_new["UIC"].astype(str).str.strip()
+            Roster_old["UIC"] = Roster_old["UIC"].astype(str).str.strip()
 
-            Decode["DODID"] = Decode["DODID"].astype(str).str.strip()
-            Roster_new = Roster_new.merge(Decode, on="DODID", how="left")
-            Roster_old = Roster_old.merge(Decode, on="DODID", how="left")
+            Roster_new = Roster_new.merge(Decode, on="UIC", how="left")
+            Roster_old = Roster_old.merge(Decode, on="UIC", how="left")
 
             gains_mask  = ~Roster_new["DODID"].isin(Roster_old["DODID"])
             losses_mask = ~Roster_old["DODID"].isin(Roster_new["DODID"])
@@ -59,7 +58,7 @@ def main():
                 df["IL5 Child Group3"] = df["BN"] if "BN" in df.columns else ""
                 df["IL5 Child Group4"] = df["CTB"] if "CTB" in df.columns else ""
                 df["IL5 Child Role"] = ""
-                df.drop(columns=["Raw name", "Detachment"], errors='ignore', inplace=True)
+                df.drop(columns=["Raw", "Detachment"], errors='ignore', inplace=True)
                 df = df[["FirstName", "LastName", "Username", "Email Address", "DateofBirth", "Known As", "UUID", "IL5 OHWS Group1", "IL5 OHWS Group2", "IL5 OHWS Role", "IL5 Child Group1", "IL5 Child Group2", "IL5 Child Group3", "IL5 Child Group4", "IL5 Child Role"]]
 
             st.subheader("Gains")
