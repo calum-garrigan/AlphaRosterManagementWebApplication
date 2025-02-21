@@ -67,13 +67,28 @@ def main():
             gains = format_output(gains)
             losses = format_output(losses)
 
+            Alpha = pd.DataFrame({
+                "About": Roster_new["LastName"] + " " + Roster_new["FirstName"],
+                "DODID": Roster_new["DODID"],
+                "Rank": Roster_new["Rank"],
+                "UIC": Roster_new["UIC"]
+            })
+
+            if "CTB" in Roster_new.columns:
+                Alpha["CTB"] = Roster_new["CTB"]
+            if "BN" in Roster_new.columns:
+                Alpha["BN"] = Roster_new["BN"]
+
             st.subheader("Gains")
             st.dataframe(gains)
             st.subheader("Losses")
             st.dataframe(losses)
+            st.subheader("Alpha Roster")
+            st.dataframe(Alpha)
 
             st.download_button("Download Gains as CSV", data=gains.to_csv(index=False), file_name="gains.csv", mime="text/csv")
             st.download_button("Download Losses as CSV", data=losses.to_csv(index=False), file_name="losses.csv", mime="text/csv")
+            st.download_button("Download Alpha as CSV", data=Alpha.to_csv(index=False), file_name="alpha.csv", mime="text/csv")
 
 if __name__ == "__main__":
     main()
